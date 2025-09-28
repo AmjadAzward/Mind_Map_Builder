@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pro Concept Map Builder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Pro Concept Map Builder</h1>
+      <div class="toolbar">
+        <button id="undo">↶ Undo</button>
+        <button id="redo">↷ Redo</button>
+        <button id="copy">Copy</button>
+        <button id="paste">Paste</button>
+        <button id="duplicate">Duplicate</button>
+        <button id="group">Group</button>
+        <button id="ungroup">Ungroup</button>
+        <button id="zoomIn">Zoom +</button>
+        <button id="zoomOut">Zoom -</button>
+        <button id="fit">Fit</button>
+      </div>
+      <div class="export-buttons">
+        <button id="exportSvg">Export SVG</button>
+        <button id="exportPng">Export PNG</button>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <!-- Left Palette -->
+      <aside class="leftbar">
+        <div class="palette">
+          <h3>Shapes (drag → drop)</h3>
+          <div class="shape-item" draggable="true" data-shape="rect"><div class="shape-sample rect"></div>Rectangle</div>
+          <div class="shape-item" draggable="true" data-shape="ellipse"><div class="shape-sample ellipse"></div>Ellipse</div>
+          <div class="shape-item" draggable="true" data-shape="circle"><div class="shape-sample circle"></div>Circle</div>
+          <div class="shape-item" draggable="true" data-shape="diamond"><div class="shape-sample diamond"></div>Diamond</div>
+          <div class="shape-item" draggable="true" data-shape="triangle"><div class="shape-sample triangle"></div>Triangle</div>
+          <div class="shape-item" draggable="true" data-shape="hex"><div class="shape-sample hex"></div>Hexagon</div>
+
+          <h3>Grid & Snap</h3>
+          <label><input type="checkbox" id="snapGrid" checked> Snap to grid (20px)</label>
+          <label><input type="checkbox" id="showGrid" checked> Show grid</label>
+
+          <h3>Connector</h3>
+          <label>Style</label>
+          <select id="connectorStyle">
+            <option value="straight">Straight</option>
+            <option value="curved">Curved</option>
+            <option value="orthogonal">Orthogonal</option>
+            <option value="stepped">Stepped</option>
+          </select>
+          <label>Arrow</label>
+          <select id="arrowHead">
+            <option value="none">None</option>
+            <option value="triangle">Triangle</option>
+            <option value="diamond">Diamond</option>
+            <option value="circle">Circle</option>
+            <option value="open">Open</option>
+          </select>
+        </div>
+      </aside>
+
+      <!-- Canvas -->
+      <div class="canvas-wrap">
+        <svg id="canvas" tabindex="0"></svg>
+        <div class="grid" id="grid"></div>
+        <div class="overlay" id="overlay"></div>
+        <div class="minimap" id="minimap"></div>
+      </div>
+
+      <!-- Right Inspector -->
+      <aside class="rightbar">
+        <div class="inspector">
+          <h3>Inspector</h3>
+          <div>Selected: <span id="selCount">0</span></div>
+          <label>Label</label>
+          <input type="text" id="insLabel" placeholder="Shape label">
+          <label>Font Size</label>
+          <select id="insFontSize"><option>12</option><option>14</option><option selected>16</option><option>18</option><option>20</option></select>
+          <label>Fill</label>
+          <input type="color" id="insFillColor" value="#60a5fa">
+          <label>Border</label>
+          <input type="color" id="insBorderColor" value="#0b2540">
+          <label>Border Width</label>
+          <select id="insBorderWidth"><option>1</option><option selected>2</option><option>3</option><option>4</option></select>
+          <label>Border Style</label>
+          <select id="borderStyle"><option value="solid">Solid</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option></select>
+          <label>Opacity</label>
+          <input type="range" id="insOpacity" min="0.2" max="1" step="0.05" value="1">
+          <label>Lock</label>
+          <select id="insLock"><option value="false">Unlocked</option><option value="true">Locked</option></select>
+
+          <h3>Connector</h3>
+          <label>Color</label>
+          <input type="color" id="insConnectorColor" value="#e6eef8">
+          <label>Width</label>
+          <select id="insConnectorWidth"><option>1</option><option selected>2</option><option>3</option><option>4</option></select>
+          <label>Label</label>
+          <input type="text" id="insConnectorLabel" placeholder="Connector label">
+
+          <div class="inspector-buttons">
+            <button id="applyStyle">Apply</button>
+            <button id="deleteSelected">Delete</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
