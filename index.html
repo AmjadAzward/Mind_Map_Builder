@@ -1,0 +1,2096 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pro Concept Map Builder - Enhanced</title>
+  <link rel="icon" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%2360a5fa'/%3E%3Cline x1='35' y1='55' x2='65' y2='45' stroke='%23ffffff' stroke-width='6' stroke-linecap='round'/%3E%3Ccircle cx='35' cy='55' r='7' fill='%23ffffff'/%3E%3Ccircle cx='65' cy='45' r='7' fill='%23ffffff'/%3E%3C/svg%3E" />
+  <link rel="shortcut icon" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%2360a5fa'/%3E%3Cline x1='35' y1='55' x2='65' y2='45' stroke='%23ffffff' stroke-width='6' stroke-linecap='round'/%3E%3Ccircle cx='35' cy='55' r='7' fill='%23ffffff'/%3E%3Ccircle cx='65' cy='45' r='7' fill='%23ffffff'/%3E%3C/svg%3E" />
+  <meta name="theme-color" content="#60a5fa" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+    :root {
+      --bg: #0c173a;
+      --panel-bg: #14284f;
+      --accent: #60a5fa;
+      --text: #e4ebff;
+      --muted: #7a9acd;
+      --shadow: rgba(92, 160, 250, 0.45);
+      --grid: rgba(96, 165, 250, 0.12);
+      --spacing: 12px;
+    }
+      @media (max-width: 900px) {
+        .app {
+          height: auto;
+        }
+        main {
+          flex-direction: column;
+          gap: 0;
+          padding: 0;
+        }
+        .side-panel {
+          width: 100%;
+          border-radius: 0;
+          box-shadow: none;
+          margin-bottom: 12px;
+        }
+        .inspector {
+          width: 100%;
+          border-radius: 0;
+          box-shadow: none;
+          margin-bottom: 12px;
+        }
+        .canvas-container {
+          min-height: 300px;
+          border-radius: 0;
+        }
+        header {
+          flex-direction: column;
+          height: auto;
+          padding: 8px 4px;
+        }
+        header h1 {
+          font-size: 16px;
+        }
+        .toolbar {
+          flex-wrap: wrap;
+          gap: 4px;
+          padding: 4px 0;
+        }
+        .toolbar button {
+          font-size: 12px;
+          padding: 4px 8px;
+          margin-left: 4px;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .side-panel, .inspector {
+          padding: 8px;
+        }
+        .canvas-container {
+          min-height: 200px;
+        }
+        header h1 {
+          font-size: 14px;
+        }
+        .toolbar button {
+          font-size: 11px;
+          padding: 3px 6px;
+        }
+        .topbar-info {
+          font-size: 10px;
+          margin-left: 4px;
+        }
+      }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      user-select: none;
+    }
+
+    .app {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      height: 56px;
+      background: var(--panel-bg);
+      display: flex;
+      align-items: center;
+      padding: 0 var(--spacing);
+      border-bottom: 1px solid #223e78;
+      box-shadow: 0 0 12px var(--shadow);
+    }
+
+    header h1 {
+      font-size: 18px;
+      font-weight: 700;
+      flex: 1;
+    }
+
+    .toolbar button {
+      margin-left: 8px;
+      background: transparent;
+      border: 1.5px solid var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 13px;
+      padding: 6px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    .toolbar .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      box-shadow: 0 0 16px var(--accent);
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      gap: var(--spacing);
+      padding: var(--spacing);
+    }
+
+    .side-panel {
+      background: var(--panel-bg);
+      border-radius: 16px;
+      padding: 16px;
+      width: 220px;
+      box-shadow: 0 0 24px var(--shadow);
+    }
+
+    .inspector {
+      width: 300px;
+      padding: 16px;
+      border-radius: 16px;
+      background: var(--panel-bg);
+      color: var(--muted);
+      box-shadow: 0 0 24px var(--shadow);
+    }
+
+    .shape-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(96, 165, 250, 0.08);
+      margin-bottom: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      cursor: grab;
+    }
+
+    .shape-item .icon {
+      width: 28px;
+      height: 28px;
+      margin-right: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .canvas-container {
+      flex: 1;
+      position: relative;
+      border-radius: 20px;
+      background: #081333;
+      box-shadow: inset 0 0 30px #031027;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      scrollbar-width: thin;
+      scrollbar-color: var(--panel-bg) var(--bg);
+      transition: background-color 0.3s ease;
+    }
+
+    /* Style for disabled color input */
+    .inspector input[type=color]:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Checkerboard background for transparency */
+    .canvas-container[data-transparent="true"] {
+      background-image: 
+        linear-gradient(45deg, #1a2b4a 25%, transparent 25%),
+        linear-gradient(-45deg, #1a2b4a 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #1a2b4a 75%),
+        linear-gradient(-45deg, transparent 75%, #1a2b4a 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+      background-color: #0c1733;
+    }
+
+    .canvas-container::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    .canvas-container::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+
+    .canvas-container::-webkit-scrollbar-thumb {
+      background-color: var(--panel-bg);
+      border-radius: 4px;
+    }
+
+    .canvas-container::-webkit-scrollbar-corner {
+      background: var(--bg);
+    }
+
+    #grid {
+      position: absolute;
+      width: 3000px;
+      height: 3000px;
+      pointer-events: none;
+      background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 20px 20px;
+      background-color: #081333;
+    }
+
+    svg#canvas-svg {
+      position: absolute;
+      width: 3000px;
+      height: 3000px;
+      display: block;
+      cursor: default;
+      min-width: 100%;
+      min-height: 100%;
+    }
+
+    .inspector label {
+      display: block;
+      margin-top: 12px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .inspector input[type=text],
+    .inspector select,
+    .inspector input[type=color],
+    .inspector input[type=number] {
+      width: 100%;
+      margin-top: 6px;
+      padding: 8px 12px;
+      background: rgba(12, 23, 58, 0.6);
+      border: 1px solid rgba(96, 165, 250, 0.1);
+      border-radius: 8px;
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.2s ease;
+    }
+
+    .inspector input:focus,
+    .inspector select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+      background: rgba(12, 23, 58, 0.8);
+    }
+
+    .inspector .section {
+      margin: 0 0 16px 0;
+      padding: 16px;
+      background: rgba(12, 23, 58, 0.4);
+      border-radius: 12px;
+      border: 1px solid rgba(96, 165, 250, 0.1);
+    }
+
+    .inspector .section-title {
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0 0 12px 0;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(96, 165, 250, 0.1);
+    }
+
+    .inspector select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='M2.5 4.5L6 8L9.5 4.5' stroke='%2360A5FA' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+    }
+
+    .inspector input[type=color] {
+      height: 36px;
+      padding: 3px;
+      cursor: pointer;
+    }
+
+    .inspector input[type=color]::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+
+    .inspector input[type=color]::-webkit-color-swatch {
+      border: none;
+      border-radius: 4px;
+    }
+
+    .inspector input[type=checkbox] {
+      margin-right: 8px;
+      accent-color: var(--accent);
+    }
+
+    .inspector label {
+      display: block;
+      margin-top: 12px;
+      font-weight: 600;
+      color: var(--text);
+      font-size: 13px;
+      transition: color 0.2s ease;
+    }
+
+    .inspector label:first-of-type {
+      margin-top: 0;
+    }
+
+    .inspector label:hover {
+      color: var(--accent);
+    }
+
+    .inspector .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .context-menu {
+      position: fixed;
+      background: linear-gradient(180deg, #0f2a52, #081a3a);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 8px;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
+      display: none;
+      z-index: 9999;
+    }
+
+    .context-menu button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 8px 12px;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      border-radius: 6px;
+    }
+
+    .context-menu button:hover {
+      background: rgba(96, 165, 250, 0.08);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* resize handle */
+    .handle {
+      fill: #e4ebff;
+      stroke: #0b1b36;
+      stroke-width: 1px;
+      cursor: nwse-resize;
+    }
+
+    .handle.rotate {
+      cursor: grab;
+    }
+
+    /* small helper */
+    .topbar-info {
+      font-size: 12px;
+      color: var(--muted);
+      margin-left: 10px;
+    }
+
+    /* Message box */
+    .message-box {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(180deg, #0f2a52, #081a3a);
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      z-index: 10000;
+      display: none;
+      min-width: 300px;
+    }
+
+    .message-box .message {
+      color: var(--text);
+      white-space: pre-line;
+      margin-bottom: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .message-box .btn-ok {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      padding: 8px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      float: right;
+    }
+
+    .message-box .btn-ok:hover {
+      opacity: 0.9;
+    }
+
+    .mobile-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--bg);
+      z-index: 10000;
+      padding: 20px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .mobile-overlay h2 {
+      color: var(--accent);
+      font-size: 24px;
+      margin: 0;
+    }
+
+    .mobile-overlay p {
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.6;
+      max-width: 400px;
+      margin: 0;
+    }
+
+    .mobile-overlay img {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 20px;
+    }
+
+    @media (min-width: 1024px) and (pointer: fine) {
+      .mobile-overlay {
+        display: none !important;
+      }
+    }
+
+    @media (pointer: coarse), (max-width: 1023px) {
+      .mobile-overlay {
+        display: flex;
+      }
+      .app {
+        display: none !important;
+      }
+    }
+
+    @media (min-width: 1024px) and (pointer: coarse) and (orientation: landscape) and (min-height: 750px) {
+      .mobile-overlay {
+        display: none !important;
+      }
+      .app {
+        display: flex !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="mobile-overlay">
+    <h2>Desktop Only Application</h2>
+    <p>This mind mapping tool is designed for desktop use only. Please access it from a computer for the full experience.</p>
+    <p>🖥️ Recommended: Use a desktop or laptop browser</p>
+  </div>
+
+  <div class="app">
+    <header>
+      <h1>Pro Concept Map Builder</h1>
+      <div class="topbar-info">Enhanced — Resize · Connectors · Grouping · Save/Load · Shortcuts</div>
+      <nav class="toolbar" aria-label="Toolbar">
+        <button id="undo">↶ Undo</button>
+        <button id="redo">↷ Redo</button>
+        <button id="copy">Copy</button>
+        <button id="paste">Paste</button>
+        <button id="duplicate">Duplicate</button>
+        <button id="deleteSelected">Delete</button>
+        <button id="zoomIn">Zoom +</button>
+        <button id="zoomOut">Zoom -</button>
+        <button id="fit">Fit</button>
+        <button id="exportSvg">Export SVG</button>
+        <button id="exportPng" class="btn-primary">Export PNG</button>
+      </nav>
+    </header>
+
+    <main>
+      <aside class="side-panel palette" aria-label="Shapes palette">
+        <h3 style="color:var(--accent);margin:0 0 12px 0;">Shapes</h3>
+        <div class="shape-item" draggable="true" data-shape="rect"><span class="icon">▭</span>Rectangle</div>
+        <div class="shape-item" draggable="true" data-shape="ellipse"><span class="icon">⬭</span>Ellipse</div>
+        <div class="shape-item" draggable="true" data-shape="circle"><span class="icon">●</span>Circle</div>
+        <div class="shape-item" draggable="true" data-shape="diamond"><span class="icon">◇</span>Diamond</div>
+        <div class="shape-item" draggable="true" data-shape="triangle"><span class="icon">▲</span>Triangle</div>
+        <div class="shape-item" draggable="true" data-shape="note"><span class="icon">✎</span>Note</div>
+
+        <hr style="border:none;border-top:1px solid #203b6b;margin:12px 0;">
+        <button id="saveLocal"
+          style="width:100%;padding:8px;border-radius:8px;background:transparent;border:1px solid var(--accent);color:var(--accent);font-weight:700;">Save
+          to Local</button>
+        <button id="loadLocal"
+          style="width:100%;padding:8px;border-radius:8px;margin-top:8px;background:transparent;border:1px solid #7a9acd;color:#7a9acd;font-weight:700;">Load
+          from Local</button>
+
+        <input id="importFile" type="file" accept="application/json" style="display:none;">
+        <button id="importBtn"
+          style="width:100%;padding:8px;border-radius:8px;margin-top:8px;background:transparent;border:1px solid #7a9acd;color:#7a9acd;font-weight:700;">Import
+          JSON</button>
+        <button id="exportJson"
+          style="width:100%;padding:8px;border-radius:8px;margin-top:8px;background:transparent;border:1px solid var(--accent);color:var(--accent);font-weight:700;">Export
+          JSON</button>
+      </aside>
+
+      <section class="canvas-container" aria-label="Concept map canvas">
+        <div id="grid"></div>
+        <svg id="canvas-svg" tabindex="0"></svg>
+      </section>
+
+      <aside class="inspector side-panel" aria-label="Properties inspector" hidden>
+        <h3 style="color:var(--accent);margin:0 0 16px 0;font-size:16px;">Inspector</h3>
+        
+        <div class="section">
+          <div class="section-title">General</div>
+          <label for="insLabel">Label</label>
+          <input id="insLabel" type="text" placeholder="Enter text..." />
+        </div>
+
+        <div class="section">
+          <div class="section-title">Fill & Stroke</div>
+          <label for="insFillColor">Fill Color</label>
+          <input id="insFillColor" type="color" value="#60a5fa" />
+          <label><input type="checkbox" id="insNoFill" /> No Fill (Transparent)</label>
+          
+          <label for="insBorderColor" style="margin-top:16px;">Border Color</label>
+          <input id="insBorderColor" type="color" value="#2c4dab" />
+          <label><input type="checkbox" id="insNoStroke" /> No Stroke (Transparent)</label>
+        </div>
+
+          <div class="section">
+          <div class="section-title">Canvas Background</div>
+          <label>
+            <input type="checkbox" id="canvasBgTransparent" />
+            Transparent Background
+          </label>
+          <div style="margin-top: 12px;">
+            <label for="canvasBgColor">Background Color</label>
+            <input type="color" id="canvasBgColor" value="#081333" style="width:100%;" />
+          </div>
+        </div>
+        <div class="section">
+          <div class="section-title">Text Style</div>
+          <label for="insFontFamily">Font Family</label>
+          <select id="insFontFamily">
+            <option value="Arial">Arial</option>
+            <option value="Courier New">Courier New</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Verdana">Verdana</option>
+          </select>
+
+          <label for="insFontSize">Font Size</label>
+          <select id="insFontSize">
+            <option>12</option>
+            <option>14</option>
+            <option selected>16</option>
+            <option>18</option>
+            <option>20</option>
+          </select>
+
+          <div style="display:flex;gap:8px;margin-top:12px;">
+            <div style="flex:1;">
+              <label for="insFontWeight">Weight</label>
+              <select id="insFontWeight">
+                <option value="normal">Normal</option>
+                <option value="bold">Bold</option>
+              </select>
+            </div>
+            <div style="flex:1;">
+              <label for="insFontStyle">Style</label>
+              <select id="insFontStyle">
+                <option value="normal">Normal</option>
+                <option value="italic">Italic</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Line Style</div>
+          <label for="lineStyle">Connection Type</label>
+          <select id="lineStyle">
+            <option value="solid">Solid Line</option>
+            <option value="dotted">Dotted Line</option>
+          </select>
+          <label style="margin-top:8px;">
+            <input type="checkbox" id="showArrow" checked> Show Arrow
+          </label>
+        </div>
+        <label for="insFontColor">Font Color</label>
+        <input id="insFontColor" type="color" value="#e4ebff" />
+
+
+        <label for="insBorderWidth">Border Width</label>
+        <input id="insBorderWidth" type="number" value="2" min="1" max="8" />
+
+        <label for="insOpacity">Opacity</label>
+        <input id="insOpacity" type="number" step="0.05" value="1" min="0.1" max="1" />
+
+
+        <hr style="border:none;border-top:1px solid #203b6b;margin:12px 0;">
+
+        <button id="groupBtn"
+          style="width:100%;padding:8px;border-radius:8px;background:transparent;border:1px solid var(--accent);color:var(--accent);font-weight:700;">Group
+          Selected</button>
+        <button id="ungroupBtn"
+          style="width:100%;padding:8px;border-radius:8px;margin-top:8px;background:transparent;border:1px solid #7a9acd;color:#7a9acd;font-weight:700;">Ungroup</button>
+      </aside>
+    </main>
+  </div>
+
+  <!-- Context menu -->
+  <div id="contextMenu" class="context-menu" role="menu" aria-hidden="true">
+    <button id="ctxDelete">Delete</button>
+    <button id="ctxDuplicate">Duplicate</button>
+    <button id="ctxGroup">Group</button>
+    <button id="ctxUngroup">Ungroup</button>
+  </div>
+
+  <!-- Message box -->
+  <div id="messageBox" class="message-box">
+    <div id="messageText" class="message"></div>
+    <button class="btn-ok">OK</button>
+  </div>
+
+  <script>
+    (() => {
+      // ---- Constants and state ----
+      const svgNS = "http://www.w3.org/2000/svg";
+      const GRID = 20;
+      const canvasSvg = document.getElementById('canvas-svg');
+      const canvasContainer = document.querySelector('.canvas-container');
+      const inspector = document.querySelector('.inspector');
+      const insLabel = document.getElementById('insLabel');
+      const insFill = document.getElementById('insFillColor');
+      const insStroke = document.getElementById('insBorderColor');
+      const insFont = document.getElementById('insFontSize');
+      const insStrokeW = document.getElementById('insBorderWidth');
+      const insOpacity = document.getElementById('insOpacity');
+      const applyStyleBtn = document.getElementById('applyStyle');
+      const insFontColor = document.getElementById('insFontColor');
+
+      // toolbar and controls
+      const undoBtn = document.getElementById('undo');
+      const redoBtn = document.getElementById('redo');
+      const copyBtn = document.getElementById('copy');
+      const pasteBtn = document.getElementById('paste');
+      const duplicateBtn = document.getElementById('duplicate');
+      const deleteBtn = document.getElementById('deleteSelected');
+      const deleteBtn2 = document.getElementById('deleteSelectedBtn');
+      const zoomInBtn = document.getElementById('zoomIn');
+      const zoomOutBtn = document.getElementById('zoomOut');
+      const fitBtn = document.getElementById('fit');
+      const exportSvgBtn = document.getElementById('exportSvg');
+      const exportPngBtn = document.getElementById('exportPng');
+      const saveLocalBtn = document.getElementById('saveLocal');
+      const loadLocalBtn = document.getElementById('loadLocal');
+      const exportJsonBtn = document.getElementById('exportJson');
+      const importInput = document.getElementById('importFile');
+      const importBtn = document.getElementById('importBtn');
+
+      const ctxMenu = document.getElementById('contextMenu');
+      const ctxDelete = document.getElementById('ctxDelete');
+      const ctxDuplicate = document.getElementById('ctxDuplicate');
+      const ctxGroup = document.getElementById('ctxGroup');
+      const ctxUngroup = document.getElementById('ctxUngroup');
+
+      const insNoFill = document.getElementById('insNoFill');
+      const insNoStroke = document.getElementById('insNoStroke');
+      const canvasBgColorInput = document.getElementById('canvasBgColor');
+      const canvasBgTransparent = document.getElementById('canvasBgTransparent');
+
+
+      // state
+      let shapes = [];          // shape objects
+      let connectors = [];      // {id, from:{shapeId,anchor}, to:{shapeId,anchor}}
+      let groups = [];          // {id, members: [shapeId,...]}
+      let selected = [];        // selected shape ids
+      let copiedShapes = [];    // copied shapes (cloned)
+      let undoStack = [];
+      let redoStack = [];
+      let dragState = null;
+      let zoomLevel = 1;
+      let pan = { x: 0, y: 0 };
+      let connectorDrag = null; // {connectorId, side:'from'|'to'}
+      let lastRightClick = null; // keep target and coords
+
+      // helpers
+      function uuid() { return 'id-' + Math.random().toString(36).slice(2, 10); }
+      function snap(v) { return Math.round(v / GRID) * GRID; }
+      function findGroupByMember(id) { return groups.find(g => g.members.includes(id)); }
+      function arraysEqual(a, b) {
+        if (a.length !== b.length) return false;
+        const sa = [...a].sort(); const sb = [...b].sort();
+        for (let i = 0; i < sa.length; i++) if (sa[i] !== sb[i]) return false;
+        return true;
+      }
+      function findGroupByMembers(members) {
+        return groups.find(g => arraysEqual(g.members, members));
+      }
+
+      // snapshot (push state)
+      function snapshot() {
+        undoStack.push(JSON.stringify({
+          shapes: structuredClone(shapes),
+          connectors: structuredClone(connectors),
+          groups: structuredClone(groups),
+          selected: structuredClone(selected)
+        }));
+        redoStack = [];
+        updateUndoRedoButtons();
+      }
+      function updateUndoRedoButtons() {
+        undoBtn.disabled = undoStack.length === 0;
+        redoBtn.disabled = redoStack.length === 0;
+      }
+      function getStateString() {
+        return JSON.stringify({ shapes: structuredClone(shapes), connectors: structuredClone(connectors), groups: structuredClone(groups), selected: structuredClone(selected) });
+      }
+
+      function performUndo() {
+        if (!undoStack.length) return;
+        const currentStr = getStateString();
+        // push current state to redo
+        redoStack.push(currentStr);
+        // discard any snapshots identical to current (dedupe stacked identical snapshots)
+        while (undoStack.length && undoStack[undoStack.length - 1] === currentStr) undoStack.pop();
+        if (!undoStack.length) {
+          shapes = []; connectors = []; groups = []; selected = [];
+          render(); updateUndoRedoButtons();
+          return;
+        }
+        const prev = undoStack.pop(); restore(prev);
+      }
+
+      function performRedo() {
+        if (!redoStack.length) return;
+        undoStack.push(getStateString());
+        const next = redoStack.pop();
+        restore(next);
+      }
+      function restore(stateStr) {
+        const st = JSON.parse(stateStr);
+        shapes = st.shapes;
+        connectors = st.connectors;
+        groups = st.groups || [];
+        selected = st.selected || [];
+        // clear any in-progress interactions to avoid stale transient state
+        dragState = null;
+        connectorDrag = null;
+        hideContextMenu();
+        render();
+        // update undo/redo button disabled states after restoring
+        updateUndoRedoButtons();
+      }
+
+      // palette drag fix: attach events to .shape-item
+
+      document.querySelectorAll('.shape-item').forEach(item => {
+        item.addEventListener('dragstart', e => {
+          e.dataTransfer.setData('text/plain', item.dataset.shape);
+        });
+        // Mobile tap/click support
+        item.addEventListener('click', function(e) {
+          // Only add shape if not dragging (ignore click during drag)
+          // Place shape in center of canvas
+          if (window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 900) {
+            const rect = canvasSvg.getBoundingClientRect();
+            // Center of visible canvas
+            const x = snap((rect.width / 2) / zoomLevel - pan.x);
+            const y = snap((rect.height / 2) / zoomLevel - pan.y);
+            addShape(item.dataset.shape, x, y);
+          }
+        });
+      });
+
+      canvasContainer.addEventListener('dragover', e => { e.preventDefault(); });
+      canvasContainer.addEventListener('drop', e => {
+        e.preventDefault();
+        const type = e.dataTransfer.getData('text/plain');
+        if (!type) return;
+        const rect = canvasSvg.getBoundingClientRect();
+        const x = snap((e.clientX - rect.left) / zoomLevel - pan.x);
+        const y = snap((e.clientY - rect.top) / zoomLevel - pan.y);
+        addShape(type, x, y);
+      });
+
+      // ----- create shape -----
+      function addShape(type, x = 80, y = 80) {
+        const base = { w: 140, h: 70 };
+        const sh = {
+          id: uuid(), type, x, y,
+          w: base.w, h: base.h, r: 0,
+          text: type === 'note' ? 'Note' : type.toUpperCase(),
+          fill: type === 'note' ? '#fffbe6' : '#60a5fa',
+          stroke: '#2c4dab', fontSize: 16, strokeWidth: 2, opacity: 1,
+        };
+        // snapshot current state before creating a new shape so undo removes the new shape
+        snapshot();
+        shapes.push(sh);
+        render();
+        return sh;
+      }
+
+      // ----- rendering -----
+      function make(tag, attrs = {}, text) {
+        const el = document.createElementNS(svgNS, tag);
+        for (const k in attrs) if (attrs[k] !== undefined && attrs[k] !== null) el.setAttribute(k, attrs[k]);
+        if (text !== undefined) el.textContent = text;
+        return el;
+      }
+
+      function clearSvg() { canvasSvg.innerHTML = ''; }
+
+      function findShapeAt(pointX, pointY) {
+        return shapes.find(s => {
+          return pointX >= s.x && pointX <= s.x + s.w && pointY >= s.y && pointY <= s.y + s.h;
+        });
+      }
+
+      // anchor helpers: returns {x,y}
+      function anchorPoint(shape, anchor = 'center') {
+        if (shape.type === 'triangle') {
+          // Special anchor points for triangle that follow its shape
+          switch (anchor) {
+            case 'left': return { x: shape.x + shape.w * 0.1, y: shape.y + shape.h * 0.8 };
+            case 'right': return { x: shape.x + shape.w * 0.9, y: shape.y + shape.h * 0.8 };
+            case 'top': return { x: shape.x + shape.w / 2, y: shape.y };
+            case 'bottom': return { x: shape.x + shape.w / 2, y: shape.y + shape.h };
+            default: return { x: shape.x + shape.w / 2, y: shape.y + shape.h / 2 };
+          }
+        } else {
+          // Default anchor points for other shapes
+          switch (anchor) {
+            case 'left': return { x: shape.x, y: shape.y + shape.h / 2 };
+            case 'right': return { x: shape.x + shape.w, y: shape.y + shape.h / 2 };
+            case 'top': return { x: shape.x + shape.w / 2, y: shape.y };
+            case 'bottom': return { x: shape.x + shape.w / 2, y: shape.y + shape.h };
+            default: return { x: shape.x + shape.w / 2, y: shape.y + shape.h / 2 };
+          }
+        }
+      }
+
+      // boundary point: given any world coordinate inside/near shape, return a point on the shape boundary
+      function boundaryPoint(shape, wx, wy) {
+        // rectangle-like shapes (rect, note, diamond fallback to bbox), use bbox projection
+        const left = shape.x, right = shape.x + shape.w, top = shape.y, bottom = shape.y + shape.h;
+        // compute distances to edges
+        const dl = Math.abs(wx - left);
+        const dr = Math.abs(right - wx);
+        const dt = Math.abs(wy - top);
+        const db = Math.abs(bottom - wy);
+        const min = Math.min(dl, dr, dt, db);
+        if (min === dl) return { x: left, y: Math.max(top, Math.min(bottom, wy)) };
+        if (min === dr) return { x: right, y: Math.max(top, Math.min(bottom, wy)) };
+        if (min === dt) return { x: Math.max(left, Math.min(right, wx)), y: top };
+        return { x: Math.max(left, Math.min(right, wx)), y: bottom };
+      }
+
+      // helper to resolve endpoint (supports anchored names or free x/y)
+      function resolveEndpoint(ep) {
+        if (!ep) return null;
+        if (ep.shapeId === null) {
+          // floating point stored as anchor:{x,y}
+          return { x: ep.anchor.x, y: ep.anchor.y };
+        }
+        if (ep.anchor === 'free' && ep.x !== undefined && ep.y !== undefined) {
+          return { x: ep.x, y: ep.y };
+        }
+        const shape = shapes.find(s => s.id === ep.shapeId);
+        if (!shape) return null;
+        return anchorPoint(shape, ep.anchor);
+      }
+
+      function updateInspectorNoFillStroke() {
+        if (selected.length !== 1) return;
+        const s = shapes.find(x => x.id === selected[0]);
+        if (!s) return;
+        insNoFill.checked = s.fill === 'transparent';
+        insNoStroke.checked = s.stroke === 'transparent';
+        insFill.disabled = insNoFill.checked;
+        insStroke.disabled = insNoStroke.checked;
+
+      }
+
+      insNoFill.addEventListener('change', () => {
+        if (selected.length !== 1) return;
+        const s = shapes.find(x => x.id === selected[0]);
+        if (!s) return;
+        if (insNoFill.checked) {
+          s.fill = 'transparent';
+        } else {
+          s.fill = insFill.value;
+        }
+        insFill.disabled = insNoFill.checked;
+        snapshot();
+        render();
+      });
+
+      insNoStroke.addEventListener('change', () => {
+        if (selected.length !== 1) return;
+        const s = shapes.find(x => x.id === selected[0]);
+        if (!s) return;
+        if (insNoStroke.checked) {
+          s.stroke = 'transparent';
+        } else {
+          s.stroke = insStroke.value;
+        }
+        insStroke.disabled = insNoStroke.checked;
+        snapshot();
+        render();
+      });
+
+      // Also update color inputs to sync if user changes manually and checkbox is unchecked
+      insFill.addEventListener('input', () => {
+        if (insNoFill.checked) return;
+        if (selected.length !== 1) return;
+        const s = shapes.find(x => x.id === selected[0]);
+        if (!s) return;
+        s.fill = insFill.value;
+        snapshot();
+        render();
+      });
+      insStroke.addEventListener('input', () => {
+        if (insNoStroke.checked) return;
+        if (selected.length !== 1) return;
+        const s = shapes.find(x => x.id === selected[0]);
+        if (!s) return;
+        s.stroke = insStroke.value;
+        snapshot();
+        render();
+      });
+
+      function nearestAnchor(shape, px, py) {
+        const candidates = ['left', 'right', 'top', 'bottom', 'center'];
+        let best = null; let bestD = Infinity;
+        for (const a of candidates) {
+          const p = anchorPoint(shape, a);
+          const d = Math.hypot(p.x - px, p.y - py);
+          if (d < bestD) { bestD = d; best = a; }
+        }
+        return best;
+      }
+
+      function render() {
+        clearSvg();
+        // defs
+        const defs = make('defs');
+        // arrow marker with improved visibility
+        const marker = make('marker', { 
+          id: 'arrow', 
+          viewBox: '0 0 12 12', 
+          refX: 6, 
+          refY: 6, 
+          markerUnits: 'strokeWidth', 
+          markerWidth: 10, 
+          markerHeight: 10, 
+          orient: 'auto-start-reverse' 
+        });
+        marker.appendChild(make('path', { 
+          d: 'M 0 0 L 12 6 L 0 12 L 4 6 Z', 
+          fill: '#a9c7ff',
+          stroke: '#60a5fa',
+          'stroke-width': 0.5
+        }));
+        defs.appendChild(marker);
+        
+        // Add glow filter for group highlighting
+        const filter = make('filter', { id: 'group-glow', x: '-20%', y: '-20%', width: '140%', height: '140%' });
+        const blur = make('feGaussianBlur', { 'in': 'SourceAlpha', stdDeviation: '3' });
+        const colorMatrix = make('feColorMatrix', {
+          type: 'matrix',
+          values: '0 0 0 0 0.654   0 0 0 0 0.545   0 0 0 0 0.98  0 0 0 0.3 0'
+        });
+        const merge = make('feMerge');
+        merge.appendChild(make('feMergeNode'));
+        merge.appendChild(make('feMergeNode', { 'in': 'SourceGraphic' }));
+        filter.appendChild(blur);
+        filter.appendChild(colorMatrix);
+        filter.appendChild(merge);
+        defs.appendChild(filter);
+        canvasSvg.appendChild(defs);
+
+        // wrapper group with pan & zoom transform
+        const root = make('g', { transform: `translate(${pan.x},${pan.y}) scale(${zoomLevel})` });
+        canvasSvg.appendChild(root);
+
+        // connectors (lines behind shapes)
+        connectors.forEach(c => {
+          const fromShape = shapes.find(s => s.id === c.from.shapeId);
+          const toShape = shapes.find(s => s.id === c.to.shapeId);
+          if (!fromShape || !toShape) return;
+          // resolve endpoints (support named anchors and free x/y points)
+          const p1 = resolveEndpoint(c.from) || { x: 0, y: 0 };
+          const p2 = resolveEndpoint(c.to) || { x: 0, y: 0 };
+          
+          // Calculate the length of the line
+          const dx = p2.x - p1.x;
+          const dy = p2.y - p1.y;
+          const length = Math.sqrt(dx * dx + dy * dy);
+          
+          // Calculate the angle of the line
+          const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+          
+          // Adjust the end point to prevent arrow from extending past the shape
+          const arrowPadding = 12; // Adjust this value to control arrow distance from shape
+          const endX = p2.x - (arrowPadding * dx / length);
+          const endY = p2.y - (arrowPadding * dy / length);
+          
+          const lineGroup = make('g', { class: 'connector-line', 'data-id': c.id });
+          
+          // Add highlight effect line (invisible by default)
+          const highlightLine = make('line', {
+            x1: p1.x,
+            y1: p1.y,
+            x2: endX,
+            y2: endY,
+            stroke: '#60a5fa',
+            'stroke-width': 6,
+            'stroke-opacity': 0,
+            'pointer-events': 'stroke',
+            style: 'transition: stroke-opacity 0.2s ease;'
+          });
+
+          // Main line
+          const line = make('line', { 
+            x1: p1.x, 
+            y1: p1.y, 
+            x2: endX, 
+            y2: endY, 
+            stroke: '#a9c7ff', 
+            'stroke-width': 2.5, 
+            'stroke-dasharray': c.style === 'dotted' ? '4 4' : 'none',
+            'marker-end': c.showArrow ? 'url(#arrow)' : 'none', 
+            'data-id': c.id,
+            style: 'transition: stroke-width 0.2s ease, stroke 0.2s ease;'
+          });
+          
+          // Add hover effect
+          lineGroup.addEventListener('mouseover', () => {
+            highlightLine.setAttribute('stroke-opacity', '0.3');
+            line.setAttribute('stroke-width', '3');
+            line.setAttribute('stroke', '#60a5fa');
+          });
+          
+          lineGroup.addEventListener('mouseout', () => {
+            highlightLine.setAttribute('stroke-opacity', '0');
+            line.setAttribute('stroke-width', '2.5');
+            line.setAttribute('stroke', '#a9c7ff');
+          });
+          
+          lineGroup.appendChild(highlightLine);
+          lineGroup.appendChild(line);
+          line.addEventListener('mousedown', e => {
+            // start dragging endpoint if ctrl-click on endpoint; otherwise ignore
+            if (e.ctrlKey) {
+              // decide which endpoint is closer
+              const pt = screenToWorld(e.clientX, e.clientY);
+              const d1 = Math.hypot(pt.x - p1.x, pt.y - p1.y);
+              const d2 = Math.hypot(pt.x - p2.x, pt.y - p2.y);
+              connectorDrag = { connectorId: c.id, side: d1 < d2 ? 'from' : 'to' };
+              window.addEventListener('mousemove', onConnectorDrag);
+              window.addEventListener('mouseup', onConnectorDrop);
+              e.stopPropagation();
+            }
+          });
+          root.appendChild(line);
+        });
+
+        // groups visualization (draw behind shapes, above connectors)
+        groups.forEach(g => {
+          // compute bounding box of group members
+          const members = g.members.map(id => shapes.find(s => s.id === id)).filter(Boolean);
+          if (!members.length) return;
+          const minX = Math.min(...members.map(m => m.x));
+          const minY = Math.min(...members.map(m => m.y));
+          const maxX = Math.max(...members.map(m => m.x + m.w));
+          const maxY = Math.max(...members.map(m => m.y + m.h));
+          const padding = 12;
+          const gx = minX - padding, gy = minY - padding, gw = (maxX - minX) + padding * 2, gh = (maxY - minY) + padding * 2;
+          const grect = make('rect', { x: gx, y: gy, width: gw, height: gh, rx: 14, ry: 14, fill: 'rgba(159,122,234,0.04)', stroke: '#9f7aea', 'stroke-width': 2, 'stroke-dasharray': '8 6', 'data-group': g.id });
+          root.appendChild(grect);
+        });
+
+        // shapes
+        shapes.forEach(s => {
+          const g = make('g', { transform: `translate(${s.x},${s.y})`, 'data-id': s.id });
+          // background depending on type
+          let el;
+          const common = { fill: s.fill, stroke: s.stroke, 'stroke-width': s.strokeWidth };
+          switch (s.type) {
+            case 'rect':
+              el = make('rect', { width: s.w, height: s.h, rx: 12, ry: 12, ...common });
+              break;
+            case 'ellipse':
+              el = make('ellipse', { cx: s.w / 2, cy: s.h / 2, rx: s.w / 2, ry: s.h / 2, ...common });
+              break;
+            case 'circle':
+              const diameter = Math.min(s.w, s.h);
+              s.w = diameter; // Make width equal to height for circles
+              s.h = diameter;
+              el = make('circle', { cx: diameter / 2, cy: diameter / 2, r: diameter / 2, ...common });
+              break;
+            case 'diamond':
+              el = make('polygon', { points: `${s.w / 2},0 ${s.w},${s.h / 2} ${s.w / 2},${s.h} 0,${s.h / 2}`, ...common });
+              break;
+            case 'triangle':
+              el = make('polygon', { points: `${s.w / 2},0 ${s.w},${s.h} 0,${s.h}`, ...common });
+              break;
+            case 'note':
+              el = make('rect', { width: s.w, height: s.h, rx: 6, ry: 6, fill: s.fill, stroke: s.stroke, 'stroke-width': s.strokeWidth });
+              break;
+            default:
+              el = make('rect', { width: s.w, height: s.h, rx: 10, ry: 10, ...common });
+          }
+          el.style.cursor = 'grab';
+          el.setAttribute('opacity', s.opacity);
+          // events for selecting/draging shapes
+          el.addEventListener('mousedown', e => {
+            // If user holds Alt or Ctrl while clicking a shape, start a connector from that exact point
+            if (e.altKey || e.ctrlKey) {
+              e.stopPropagation();
+              const pt = screenToWorld(e.clientX, e.clientY);
+              const bp = boundaryPoint(s, pt.x, pt.y);
+              startConnectorFromPoint(s.id, bp.x, bp.y);
+              return;
+            }
+            shapeMouseDown(e, s);
+          });
+          g.appendChild(el);
+
+          // text
+          const text = make('text', {
+            x: s.w / 2,
+            y: s.h / 2,
+            'text-anchor': 'middle',
+            'dominant-baseline': 'middle',
+            'font-weight': s.fontWeight || 'normal',
+            'font-style': s.fontStyle || 'normal',
+            'font-family': s.fontFamily || 'Arial',
+            'font-size': s.fontSize,
+            fill: s.fontColor || (s.type === 'note' ? '#07162a' : '#e4ebff'),
+            style: 'pointer-events:none;user-select:none;'
+          });
+
+          text.textContent = s.text;
+          g.appendChild(text);
+
+          // show selection outline + handles
+          if (selected.includes(s.id)) {
+            // For circles, make the selection box match the circle's actual size
+            const isCircle = s.type === 'circle';
+            let outlineWidth = s.w + 16;
+            let outlineHeight = s.h + 16;
+            let outlineX = -8;
+            let outlineY = -8;
+            
+            if (isCircle) {
+              const diameter = Math.min(s.w, s.h);
+              outlineWidth = diameter + 16;
+              outlineHeight = diameter + 16;
+              outlineX = (s.w - diameter) / 2 - 8;
+              outlineY = (s.h - diameter) / 2 - 8;
+            }
+            
+            // outline removed to prevent dotted outer border on shapes
+            
+            // handles (4 corners) - adjust for circles
+            const handlePos = isCircle ? {
+              nw: { x: outlineX, y: outlineY },
+              ne: { x: outlineX + outlineWidth, y: outlineY },
+              sw: { x: outlineX, y: outlineY + outlineHeight },
+              se: { x: outlineX + outlineWidth, y: outlineY + outlineHeight }
+            } : {
+              nw: { x: 0, y: 0 },
+              ne: { x: s.w, y: 0 },
+              sw: { x: 0, y: s.h },
+              se: { x: s.w, y: s.h }
+            };
+            
+            const handles = [
+              { cx: handlePos.nw.x, cy: handlePos.nw.y, cursor: 'nwse-resize', pos: 'nw' },
+              { cx: handlePos.ne.x, cy: handlePos.ne.y, cursor: 'nesw-resize', pos: 'ne' },
+              { cx: handlePos.sw.x, cy: handlePos.sw.y, cursor: 'nesw-resize', pos: 'sw' },
+              { cx: handlePos.se.x, cy: handlePos.se.y, cursor: 'nwse-resize', pos: 'se' },
+            ];
+            handles.forEach(h => {
+              const hv = make('rect', { x: h.cx - 6, y: h.cy - 6, width: 12, height: 12, class: 'handle', 'data-pos': h.pos });
+              hv.style.cursor = h.cursor;
+              hv.addEventListener('mousedown', e => handleMouseDown(e, s, h.pos));
+              g.appendChild(hv);
+            });
+            // small "connector attach" spots (left/right/top/bottom)
+            let attachSpots;
+            if (s.type === 'triangle') {
+              // Adjust attachment points for triangle to follow its shape
+              attachSpots = [
+                { x: s.w * 0.1 - 6, y: s.h * 0.8 - 6, pos: 'left' },
+                { x: s.w * 0.9 - 6, y: s.h * 0.8 - 6, pos: 'right' },
+                { x: s.w / 2 - 6, y: -6, pos: 'top' },
+                { x: s.w / 2 - 6, y: s.h - 6, pos: 'bottom' },
+              ];
+            } else {
+              // Default attachment points for other shapes
+              attachSpots = [
+                { x: -6, y: s.h / 2 - 6, pos: 'left' },
+                { x: s.w - 6, y: s.h / 2 - 6, pos: 'right' },
+                { x: s.w / 2 - 6, y: -6, pos: 'top' },
+                { x: s.w / 2 - 6, y: s.h - 6, pos: 'bottom' },
+              ];
+            }
+            attachSpots.forEach(a => {
+              // Create a visible connection point with hover effect
+              const connectionPoint = make('g', { class: 'connection-point', 'data-anchor': a.pos });
+              
+              // Larger invisible hit area for easier interaction
+              const hitArea = make('rect', { 
+                x: a.x - 4, 
+                y: a.y - 4, 
+                width: 20, 
+                height: 20, 
+                fill: 'transparent',
+                style: 'cursor: crosshair;'
+              });
+              
+              // Visible connection point with hover effect
+              const sp = make('rect', { 
+                x: a.x, 
+                y: a.y, 
+                width: 12, 
+                height: 12, 
+                rx: 3, 
+                ry: 3, 
+                fill: '#0b1b36', 
+                stroke: '#60a5fa', 
+                'stroke-width': '2',
+                style: 'transition: all 0.2s ease; cursor: crosshair;'
+              });
+              
+              // Add hover effect
+              hitArea.addEventListener('mouseover', () => {
+                sp.setAttribute('fill', '#60a5fa');
+                sp.setAttribute('transform', 'scale(1.2)');
+              });
+              
+              hitArea.addEventListener('mouseout', () => {
+                sp.setAttribute('fill', '#0b1b36');
+                sp.setAttribute('transform', 'scale(1)');
+              });
+              
+              hitArea.addEventListener('mousedown', e => {
+                // begin connector creation from this anchor
+                e.stopPropagation();
+                startConnectorDrag(s.id, a.pos, e);
+                // Visual feedback
+                sp.setAttribute('fill', '#60a5fa');
+              });
+              
+              connectionPoint.appendChild(hitArea);
+              connectionPoint.appendChild(sp);
+              g.appendChild(connectionPoint);
+            });
+          }
+
+          root.appendChild(g);
+        });
+
+        // groups visualization? Could be added; for now groups are logical only.
+
+        updateInspector();
+      }
+
+      // coordinate transforms
+      function screenToWorld(clientX, clientY) {
+        const rect = canvasSvg.getBoundingClientRect();
+        const scrollLeft = canvasContainer.scrollLeft;
+        const scrollTop = canvasContainer.scrollTop;
+        const x = ((clientX - rect.left + scrollLeft) / zoomLevel) - pan.x;
+        const y = ((clientY - rect.top + scrollTop) / zoomLevel) - pan.y;
+        return { x, y };
+      }
+
+      // ---- selection & dragging ----
+      function shapeMouseDown(e, shape) {
+        e.stopPropagation();
+        const world = screenToWorld(e.clientX, e.clientY);
+
+        // selection logic: if shape belongs to a group, treat the whole group as the selection unit
+        const grp = findGroupByMember(shape.id);
+        if (!e.shiftKey) {
+          if (grp) selected = [...grp.members];
+          else selected = [shape.id];
+        } else {
+          // shift-toggle: toggle this shape only (allow adding/removing members individually)
+          if (selected.includes(shape.id)) selected = selected.filter(id => id !== shape.id);
+          else selected.push(shape.id);
+        }
+
+        // prepare drag
+        // snapshot before starting a move so undo will restore pre-move positions
+        snapshot();
+        const origPositions = selected.map(id => {
+          const s = shapes.find(x => x.id === id);
+          return { id: s.id, x: s.x, y: s.y };
+        });
+        dragState = { type: 'move', startX: world.x, startY: world.y, origPositions };
+        window.addEventListener('mousemove', onDrag);
+        window.addEventListener('mouseup', onDrop);
+        render();
+      }
+
+      function onDrag(e) {
+        if (!dragState) return;
+        const world = screenToWorld(e.clientX, e.clientY);
+        if (dragState.type === 'move') {
+          const dx = snap(world.x - dragState.startX);
+          const dy = snap(world.y - dragState.startY);
+          dragState.origPositions.forEach(p => {
+            const s = shapes.find(x => x.id === p.id);
+            if (s) { s.x = p.x + dx; s.y = p.y + dy; }
+          });
+          render();
+        } else if (dragState.type === 'resize') {
+          // handled by resize handler (we set dragState with resize info)
+          const s = shapes.find(x => x.id === dragState.id);
+          if (!s) return;
+          const deltaX = world.x - dragState.startX;
+          const deltaY = world.y - dragState.startY;
+          // depending on handle pos
+          let newX = dragState.base.x, newY = dragState.base.y, newW = dragState.base.w, newH = dragState.base.h;
+          switch (dragState.pos) {
+            case 'nw':
+              newX = dragState.base.x + deltaX; newY = dragState.base.y + deltaY; newW = dragState.base.w - deltaX; newH = dragState.base.h - deltaY; break;
+            case 'ne':
+              newY = dragState.base.y + deltaY; newW = dragState.base.w + deltaX; newH = dragState.base.h - deltaY; break;
+            case 'sw':
+              newX = dragState.base.x + deltaX; newW = dragState.base.w - deltaX; newH = dragState.base.h + deltaY; break;
+            case 'se':
+              newW = dragState.base.w + deltaX; newH = dragState.base.h + deltaY; break;
+          }
+          // min size
+          newW = Math.max(40, newW); newH = Math.max(30, newH);
+          // snap
+          newX = snap(newX); newY = snap(newY); newW = snap(newW); newH = snap(newH);
+          s.x = newX; s.y = newY; s.w = newW; s.h = newH;
+          render();
+        }
+      }
+
+      function onDrop() {
+        // snapshot was taken at drag start; don't snapshot again here to avoid duplicate snapshots
+        dragState = null;
+        window.removeEventListener('mousemove', onDrag);
+        window.removeEventListener('mouseup', onDrop);
+      }
+
+      // resize handle events
+      function handleMouseDown(e, shape, pos) {
+        e.stopPropagation();
+        const world = screenToWorld(e.clientX, e.clientY);
+        // snapshot before starting resize so undo restores pre-resize dimensions
+        snapshot();
+        dragState = { type: 'resize', id: shape.id, pos, startX: world.x, startY: world.y, base: { x: shape.x, y: shape.y, w: shape.w, h: shape.h } };
+        window.addEventListener('mousemove', onDrag);
+        window.addEventListener('mouseup', onDrop);
+      }
+
+      // connector creation via small anchor blocks
+      function startConnectorDrag(shapeId, anchor, e) {
+        // create a temp connector with to/from same initially
+        const id = uuid();
+        const conn = { 
+          id, 
+          from: { shapeId, anchor }, 
+          to: { shapeId, anchor },
+          style: document.getElementById('lineStyle').value || 'solid',
+          showArrow: document.getElementById('showArrow').checked
+        };
+        // snapshot before creating connector so undo will remove the new connector
+        snapshot();
+        connectors.push(conn);
+        connectorDrag = { connectorId: id, side: 'to' };
+        window.addEventListener('mousemove', onConnectorDrag);
+        window.addEventListener('mouseup', onConnectorDrop);
+        render();
+      }
+
+      // start connector from exact world coordinates on a shape
+      function startConnectorFromPoint(shapeId, wx, wy) {
+        const id = uuid();
+        const conn = {
+          id,
+          from: { shapeId: shapeId, anchor: 'free', x: wx, y: wy },
+          to: { shapeId: shapeId, anchor: 'free', x: wx, y: wy },
+          style: document.getElementById('lineStyle').value || 'solid',
+          showArrow: document.getElementById('showArrow').checked
+        };
+        snapshot();
+        connectors.push(conn);
+        connectorDrag = { connectorId: id, side: 'to' };
+        window.addEventListener('mousemove', onConnectorDrag);
+        window.addEventListener('mouseup', onConnectorDrop);
+        render();
+      }
+
+      function onConnectorDrag(e) {
+        if (!connectorDrag) return;
+        const conn = connectors.find(c => c.id === connectorDrag.connectorId);
+        if (!conn) return;
+        const pt = screenToWorld(e.clientX, e.clientY);
+        // dynamic: if hovering over shape, snap endpoint to nearest anchor on that shape
+        const hit = findShapeAt(pt.x, pt.y);
+        if (hit) {
+          const anc = nearestAnchor(hit, pt.x, pt.y);
+          if (connectorDrag.side === 'from') conn.from = { shapeId: hit.id, anchor: anc };
+          else conn.to = { shapeId: hit.id, anchor: anc };
+        } else {
+          // create temporary floating anchor by using a virtual shape with id null and anchor center coordinates encoded
+          // we'll store shapeId:null and anchor:{x,y} as custom style
+          if (connectorDrag.side === 'from') conn.from = { shapeId: null, anchor: { x: pt.x, y: pt.y } };
+          else conn.to = { shapeId: null, anchor: { x: pt.x, y: pt.y } };
+        }
+        render();
+      }
+
+      function onConnectorDrop(e) {
+        if (!connectorDrag) return;
+        const conn = connectors.find(c => c.id === connectorDrag.connectorId);
+        if (!conn) { connectorDrag = null; return; }
+        const pt = screenToWorld(e.clientX, e.clientY);
+        const hit = findShapeAt(pt.x, pt.y);
+        if (hit) {
+          const anc = nearestAnchor(hit, pt.x, pt.y);
+          if (connectorDrag.side === 'from') conn.from = { shapeId: hit.id, anchor: anc };
+          else conn.to = { shapeId: hit.id, anchor: anc };
+        } else {
+          // if ended not on a shape, remove connector
+          connectors = connectors.filter(c => c.id !== conn.id);
+        }
+        connectorDrag = null;
+        window.removeEventListener('mousemove', onConnectorDrag);
+        window.removeEventListener('mouseup', onConnectorDrop);
+        // snapshot taken at connector start; do not snapshot again here to avoid duplicates
+        render();
+      }
+
+      // ----- inspector -----
+      function updateInspector() {
+        // show inspector whenever there is at least one selection so group controls are accessible
+        const groupBtnEl = document.getElementById('groupBtn');
+        const ungroupBtnEl = document.getElementById('ungroupBtn');
+        updateSelectedConnector(); // Update line style controls
+        if (selected.length > 0) {
+          inspector.hidden = false;
+          if (selected.length === 1) {
+            const s = shapes.find(x => x.id === selected[0]);
+            if (!s) return;
+            insLabel.value = s.text;
+            insFill.value = s.fill === 'transparent' ? '#ffffff' : s.fill;
+            insStroke.value = s.stroke === 'transparent' ? '#2c4dab' : s.stroke;
+            insFont.value = s.fontSize;
+            insStrokeW.value = s.strokeWidth;
+            insOpacity.value = s.opacity;
+            insFontColor.value = s.fontColor || '#e4ebff';
+            insFill.disabled = insNoFill.checked;
+            insStroke.disabled = insNoStroke.checked;
+            updateInspectorNoFillStroke();
+          } else {
+            // multiple selection: clear/disable individual controls
+            insLabel.value = '';
+            insFill.disabled = true; insStroke.disabled = true; insFont.disabled = true;
+            insStrokeW.disabled = true; insOpacity.disabled = true; insFontColor.disabled = true;
+          }
+          // enable/disable group/ungroup buttons
+          if (groupBtnEl) groupBtnEl.disabled = selected.length < 2;
+          if (ungroupBtnEl) ungroupBtnEl.disabled = !groups.some(g => g.members.some(m => selected.includes(m)));
+        } else {
+          inspector.hidden = true;
+          // re-enable controls for future single selection
+          insFill.disabled = false; insStroke.disabled = false; insFont.disabled = false;
+          insStrokeW.disabled = false; insOpacity.disabled = false; insFontColor.disabled = false;
+          if (groupBtnEl) groupBtnEl.disabled = true;
+          if (ungroupBtnEl) ungroupBtnEl.disabled = true;
+        }
+      }
+      function updateCanvasBackground() {
+        // Update grid background too
+        const gridElement = document.getElementById('grid');
+        
+        if (canvasBgTransparent.checked) {
+          canvasContainer.style.background = 'transparent';
+          gridElement.style.backgroundColor = 'transparent';
+          // Save state to localStorage
+          localStorage.setItem('canvas_bg_transparent', 'true');
+          canvasBgColorInput.disabled = true;
+        } else {
+          canvasContainer.style.background = canvasBgColorInput.value;
+          gridElement.style.backgroundColor = canvasBgColorInput.value;
+          // Save state and color to localStorage
+          localStorage.setItem('canvas_bg_transparent', 'false');
+          localStorage.setItem('canvas_bg_color', canvasBgColorInput.value);
+          canvasBgColorInput.disabled = false;
+        }
+      }
+
+      // Event listener for color input
+      canvasBgColorInput.addEventListener('input', () => {
+        if (!canvasBgTransparent.checked) {
+          updateCanvasBackground();
+        }
+      });
+
+      // Event listener for transparent checkbox
+      canvasBgTransparent.addEventListener('change', () => {
+        updateCanvasBackground();
+        snapshot(); // Add to undo stack
+      });
+
+      // Initialize canvas background from saved state or defaults
+      function initializeCanvasBackground() {
+        const isTransparent = localStorage.getItem('canvas_bg_transparent') === 'true';
+        const savedColor = localStorage.getItem('canvas_bg_color') || '#081333';
+        
+        canvasBgTransparent.checked = isTransparent;
+        canvasBgColorInput.value = savedColor;
+        canvasBgColorInput.disabled = isTransparent;
+        
+        updateCanvasBackground();
+      }
+
+      // Initialize canvas background at startup
+      initializeCanvasBackground();
+
+      // Line style controls
+      const lineStyleSelect = document.getElementById('lineStyle');
+      const showArrowCheckbox = document.getElementById('showArrow');
+
+      function updateSelectedConnector() {
+        if (selected.length !== 1) return;
+        const selectedShape = shapes.find(s => s.id === selected[0]);
+        if (!selectedShape) return;
+        
+        // Find connectors connected to this shape
+        const relatedConnectors = connectors.filter(c => 
+          c.from.shapeId === selectedShape.id || c.to.shapeId === selectedShape.id
+        );
+        
+        // Update visibility of line style controls
+        const lineStyleControls = document.querySelector('h4');
+        if (lineStyleControls) {
+          lineStyleControls.style.display = relatedConnectors.length > 0 ? 'block' : 'none';
+        }
+        lineStyleSelect.parentElement.style.display = relatedConnectors.length > 0 ? 'block' : 'none';
+        showArrowCheckbox.parentElement.style.display = relatedConnectors.length > 0 ? 'block' : 'none';
+
+        // Update controls to show current connector style
+        if (relatedConnectors.length > 0) {
+          lineStyleSelect.value = relatedConnectors[0].style || 'solid';
+          showArrowCheckbox.checked = relatedConnectors[0].showArrow !== false;
+        }
+      }
+
+      lineStyleSelect.addEventListener('change', () => {
+        if (selected.length !== 1) return;
+        const selectedShape = shapes.find(s => s.id === selected[0]);
+        if (!selectedShape) return;
+
+        snapshot();
+        // Update all connectors connected to this shape
+        connectors.forEach(c => {
+          if (c.from.shapeId === selectedShape.id || c.to.shapeId === selectedShape.id) {
+            c.style = lineStyleSelect.value;
+          }
+        });
+        render();
+      });
+
+      showArrowCheckbox.addEventListener('change', () => {
+        if (selected.length !== 1) return;
+        const selectedShape = shapes.find(s => s.id === selected[0]);
+        if (!selectedShape) return;
+
+        snapshot();
+        // Update all connectors connected to this shape
+        connectors.forEach(c => {
+          if (c.from.shapeId === selectedShape.id || c.to.shapeId === selectedShape.id) {
+            c.showArrow = showArrowCheckbox.checked;
+          }
+        });
+        render();
+      });
+
+      function applyInspectorChanges() {
+        if (selected.length !== 1) return;
+        const s = shapes.find(x => x.id === selected[0]);
+        if (!s) return;
+        // snapshot before applying inspector changes so undo restores previous properties
+        snapshot();
+        s.text = insLabel.value;
+        s.fill = insNoFill.checked ? 'transparent' : insFill.value;
+        s.stroke = insNoStroke.checked ? 'transparent' : insStroke.value;
+        s.fontSize = parseInt(insFont.value);
+        s.fontWeight = insFontWeight.value;
+        s.fontStyle = insFontStyle.value;
+        s.fontFamily = insFontFamily.value;
+        s.fontColor = insFontColor.value; // set font color
+        s.strokeWidth = parseInt(insStrokeW.value);
+        s.opacity = parseFloat(insOpacity.value);
+        render();
+      }
+
+  insFontColor.addEventListener('input', applyInspectorChanges);
+
+
+  insLabel.addEventListener('input', applyInspectorChanges);
+  insFont.addEventListener('change', applyInspectorChanges);
+  insFontWeight.addEventListener('change', applyInspectorChanges);
+  insFontStyle.addEventListener('change', applyInspectorChanges);
+  insFontFamily.addEventListener('change', applyInspectorChanges);
+  insStrokeW.addEventListener('input', applyInspectorChanges);
+  insOpacity.addEventListener('input', applyInspectorChanges);
+
+
+
+
+      // delete
+      function deleteSelectedShapes() {
+        if (selected.length === 0) return;
+        // expand selection to include entire groups when any member is selected
+        const toDelete = new Set(selected);
+        groups.forEach(g => {
+          if (g.members.some(m => selected.includes(m))) g.members.forEach(m => toDelete.add(m));
+        });
+        const delIds = Array.from(toDelete);
+        snapshot();
+        shapes = shapes.filter(s => !toDelete.has(s.id));
+        connectors = connectors.filter(c => !toDelete.has(c.from.shapeId) && !toDelete.has(c.to.shapeId));
+        // remove groups that reference removed shapes (or are empty)
+        groups = groups.map(g => ({ id: g.id, members: g.members.filter(m => !toDelete.has(m)) })).filter(g => g.members.length > 0);
+        selected = [];
+        render();
+      }
+  deleteBtn.addEventListener('click', deleteSelectedShapes);
+  if (deleteBtn2) deleteBtn2.addEventListener('click', deleteSelectedShapes);
+      ctxDelete.addEventListener('click', () => { deleteSelectedShapes(); hideContextMenu(); });
+
+      // copy/paste
+      copyBtn.addEventListener('click', () => { copiedShapes = shapes.filter(s => selected.includes(s.id)).map(s => structuredClone(s)); });
+      pasteBtn.addEventListener('click', () => {
+        if (!copiedShapes.length) return;
+        snapshot();
+        const newIds = [];
+        copiedShapes.forEach(cs => {
+          const copy = structuredClone(cs);
+          copy.id = uuid(); copy.x += 20; copy.y += 20;
+          shapes.push(copy);
+          newIds.push(copy.id);
+        });
+        selected = newIds;
+        render();
+      });
+
+      // duplicate
+      duplicateBtn.addEventListener('click', () => {
+        if (!selected.length) return;
+        snapshot();
+        const toCopy = shapes.filter(s => selected.includes(s.id));
+        const newIds = [];
+        toCopy.forEach(s => {
+          const copy = structuredClone(s);
+          copy.id = uuid(); copy.x += 20; copy.y += 20;
+          shapes.push(copy); newIds.push(copy.id);
+        });
+        // if the selected set exactly matched a group, create a new group for the newly duplicated members
+        const matchedGroup = findGroupByMembers(selected);
+        if (matchedGroup) {
+          const gid = uuid();
+          groups.push({ id: gid, members: [...newIds] });
+        }
+        selected = newIds; render();
+      });
+      
+
+      // grouping
+      document.getElementById('groupBtn').addEventListener('click', () => { 
+        if (selected.length >= 2) groupSelected();
+      });
+      document.getElementById('ungroupBtn').addEventListener('click', () => { 
+        if (selected.some(id => groups.some(g => g.members.includes(id)))) ungroupSelected();
+      });
+      ctxGroup.addEventListener('click', () => { 
+        if (selected.length >= 2) {
+          groupSelected(); 
+          hideContextMenu();
+        }
+      });
+      ctxUngroup.addEventListener('click', () => { 
+        if (selected.some(id => groups.some(g => g.members.includes(id)))) {
+          ungroupSelected(); 
+          hideContextMenu();
+        }
+      });
+
+      function groupSelected() {
+        if (selected.length < 2) return;
+        
+        // Check if all selected items are already in the same group
+        const existingGroup = groups.find(g => 
+          selected.length === g.members.length && 
+          selected.every(id => g.members.includes(id))
+        );
+        if (existingGroup) return; // Already grouped
+        
+        // Remove any existing groups that are subsets of the new group
+        groups = groups.filter(g => 
+          !g.members.every(m => selected.includes(m))
+        );
+        
+        snapshot();
+        const gid = uuid();
+        groups.push({ id: gid, members: [...selected] });
+        render();
+      }
+      function ungroupSelected() {
+        if (selected.length === 0) return;
+        
+        snapshot();
+        
+        // First find all groups that contain any of the selected items
+        const affectedGroups = groups.filter(g => 
+          selected.some(id => g.members.includes(id))
+        );
+        
+        if (affectedGroups.length === 0) return;
+        
+        // If a single item is selected, remove it from all groups
+        if (selected.length === 1) {
+          const id = selected[0];
+          groups = groups.map(g => ({
+            ...g,
+            members: g.members.filter(m => m !== id)
+          })).filter(g => g.members.length > 1); // Remove groups with less than 2 members
+        } else {
+          // Remove any groups where all selected items are members
+          groups = groups.filter(g => 
+            !selected.every(id => g.members.includes(id))
+          );
+        }
+        
+        render();
+      }
+
+      // keyboard shortcuts
+      window.addEventListener('keydown', e => {
+        const ctrl = e.ctrlKey || e.metaKey;
+        if (ctrl && e.key.toLowerCase() === 'z') { // undo
+          e.preventDefault(); performUndo();
+        } else if (ctrl && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
+          e.preventDefault(); performRedo();
+        } else if (e.key === 'Delete') {
+          e.preventDefault(); deleteSelectedShapes();
+        } else if (ctrl && e.key.toLowerCase() === 'c') {
+          copyBtn.click();
+        } else if (ctrl && e.key.toLowerCase() === 'v') {
+          pasteBtn.click();
+        }
+      });
+
+      // undo/redo buttons
+      undoBtn.addEventListener('click', performUndo);
+      redoBtn.addEventListener('click', performRedo);
+
+      // zoom
+      zoomInBtn.addEventListener('click', () => { zoomLevel *= 1.2; applyTransform(); });
+      zoomOutBtn.addEventListener('click', () => { zoomLevel /= 1.2; applyTransform(); });
+      fitBtn.addEventListener('click', () => { zoomLevel = 1; pan = { x: 0, y: 0 }; applyTransform(); render(); });
+      function applyTransform() { canvasSvg.style.transformOrigin = '0 0'; canvasSvg.style.transform = `scale(${zoomLevel})`; render(); }
+
+      // simple pan by dragging background with spacebar pressed
+      let panning = false, panLast = null;
+      canvasSvg.addEventListener('mousedown', e => {
+        // right click is context menu handled separately
+        if (e.button === 1 || (e.button === 0 && e.spaceKey)) { } // reserved
+      });
+
+      // background deselect
+      canvasSvg.addEventListener('mousedown', e => {
+        if (e.button === 0 && e.target === canvasSvg) { selected = []; render(); }
+      });
+
+      // export SVG
+      exportSvgBtn.addEventListener('click', () => {
+        const svgBlob = new Blob([canvasSvg.outerHTML], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(svgBlob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'concept-map.svg'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+
+      // export PNG (rasterize)
+      exportPngBtn.addEventListener('click', () => {
+        const xml = new XMLSerializer().serializeToString(canvasSvg);
+        const svg64 = btoa(unescape(encodeURIComponent(xml)));
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const rect = canvasSvg.getBoundingClientRect();
+          canvas.width = rect.width * 2; canvas.height = rect.height * 2;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#0c173a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const png = canvas.toDataURL('image/png');
+          const a = document.createElement('a'); a.href = png; a.download = 'concept-map.png'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        };
+        img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(xml)));
+      });
+
+      // Message box functionality
+      const messageBox = document.getElementById('messageBox');
+      const messageText = document.getElementById('messageText');
+      const messageOkBtn = messageBox.querySelector('.btn-ok');
+
+      function showMessage(msg) {
+        messageText.textContent = msg;
+        messageBox.style.display = 'block';
+      }
+
+      messageOkBtn.addEventListener('click', () => {
+        messageBox.style.display = 'none';
+      });
+
+      // Save/load JSON (localStorage)
+      saveLocalBtn.addEventListener('click', () => {
+        const data = { shapes, connectors, groups };
+        localStorage.setItem('concept_map_v1', JSON.stringify(data));
+        showMessage('Saved successfully');
+      });
+
+      loadLocalBtn.addEventListener('click', () => {
+        const raw = localStorage.getItem('concept_map_v1');
+        if (!raw) { 
+          showMessage('No saved map found'); 
+          return; 
+        }
+        try {
+          const obj = JSON.parse(raw);
+          shapes = obj.shapes || []; 
+          connectors = obj.connectors || []; 
+          groups = obj.groups || [];
+          selected = []; 
+          snapshot(); 
+          render();
+          showMessage('Loaded successfully');
+        } catch (err) {
+          showMessage('Error loading saved map');
+        }
+      });
+
+      // Export JSON file
+      exportJsonBtn.addEventListener('click', () => {
+        const data = { shapes, connectors, groups };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'concept-map.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+
+      // Import JSON
+      importBtn.addEventListener('click', () => importInput.click());
+      importInput.addEventListener('change', (ev) => {
+        const file = ev.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const obj = JSON.parse(reader.result);
+            shapes = obj.shapes || []; connectors = obj.connectors || []; groups = obj.groups || [];
+            selected = []; snapshot(); render();
+            alert('Imported successfully.');
+          } catch (err) { alert('Invalid JSON file.'); }
+        };
+        reader.readAsText(file);
+      });
+
+      // context menu
+      canvasSvg.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        const world = screenToWorld(e.clientX, e.clientY);
+        const hit = findShapeAt(world.x, world.y);
+        lastRightClick = { target: hit, x: e.clientX, y: e.clientY };
+        // if user right-clicked a shape
+        if (hit) {
+          // Add to selection if not already selected and shift is held
+          if (e.shiftKey) {
+            if (!selected.includes(hit.id)) {
+              selected.push(hit.id);
+            }
+          } else {
+            // If clicked shape is not in current selection, make it the only selection
+            if (!selected.includes(hit.id)) {
+              selected = [hit.id];
+            }
+            // Otherwise keep the current selection
+          }
+        } else {
+          // clicking empty canvas — clear selection
+          selected = [];
+        }
+        // Update Group/Ungroup availability in context menu
+        if (selected.length >= 2) {
+          // Enable group if we have 2+ items selected
+          ctxGroup.disabled = false;
+          ctxGroup.style.color = 'var(--text)';
+          ctxGroup.style.cursor = 'pointer';
+        } else {
+          ctxGroup.disabled = true;
+          ctxGroup.style.color = 'var(--muted)';
+          ctxGroup.style.cursor = 'default';
+        }
+
+        // Enable ungroup if any selected item is part of a group
+        const canUngroup = selected.some(id => groups.some(g => g.members.includes(id)));
+        ctxUngroup.disabled = !canUngroup;
+        ctxUngroup.style.color = canUngroup ? 'var(--text)' : 'var(--muted)';
+        ctxUngroup.style.cursor = canUngroup ? 'pointer' : 'default';
+
+        render();
+        showContextMenu(e.clientX, e.clientY);
+      });
+
+      function showContextMenu(x, y) {
+        ctxMenu.style.left = x + 'px'; ctxMenu.style.top = y + 'px'; ctxMenu.style.display = 'block';
+        setTimeout(() => ctxMenu.setAttribute('aria-hidden', 'false'), 10);
+      }
+      function hideContextMenu() { ctxMenu.style.display = 'none'; ctxMenu.setAttribute('aria-hidden', 'true'); }
+
+      // context menu actions
+      ctxDelete.addEventListener('click', () => {
+        // ensure the right-click target is selected when deleting via context menu
+        if (lastRightClick && lastRightClick.target && !selected.includes(lastRightClick.target.id)) selected = [lastRightClick.target.id];
+        deleteSelectedShapes(); hideContextMenu();
+      });
+
+      // export JSON for currently selected shapes/connectors only
+      function exportSelectedJson() {
+        const selShapes = shapes.filter(s => selected.includes(s.id));
+        if (!selShapes.length) { alert('No selection to export.'); return; }
+        const selIds = new Set(selShapes.map(s => s.id));
+        const selConnectors = connectors.filter(c => selIds.has(c.from.shapeId) && selIds.has(c.to.shapeId));
+        const selGroups = groups.filter(g => g.members.some(m => selIds.has(m)));
+        const data = { shapes: selShapes, connectors: selConnectors, groups: selGroups };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'selection.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+      }
+
+      // hide menu on click elsewhere
+      window.addEventListener('click', (e) => { if (!ctxMenu.contains(e.target)) hideContextMenu(); });
+
+      // helper: duplicate by id list
+      function duplicateByIds(ids) {
+        snapshot();
+        const newIds = [];
+        ids.forEach(id => {
+          const s = shapes.find(x => x.id === id);
+          if (!s) return;
+          const copy = structuredClone(s);
+          copy.id = uuid(); copy.x += 20; copy.y += 20;
+          shapes.push(copy); newIds.push(copy.id);
+        });
+        // preserve grouping if ids correspond to an existing group
+        const matched = findGroupByMembers(ids);
+        if (matched) groups.push({ id: uuid(), members: [...newIds] });
+        selected = newIds; render();
+      }
+
+      // context menu "duplicate" uses current selection
+      ctxDuplicate.addEventListener('click', () => { duplicateByIds(selected); hideContextMenu(); });
+
+  // ----- startup: ensure a clean canvas on page load -----
+  // Remove any previously saved map so refresh starts empty
+  try { localStorage.removeItem('concept_map_v1'); } catch (e) { /* ignore storage errors */ }
+  shapes = [];
+  connectors = [];
+  groups = [];
+  selected = [];
+  undoStack = []; redoStack = [];
+  snapshot();
+  render();
+
+      // utility: clicking on canvas to start connector (Ctrl+click on shape handled by anchors)
+      canvasSvg.addEventListener('click', e => {
+        // allow Ctrl+click to start a quick connector by clicking two shapes (legacy support)
+        if (!e.ctrlKey) return;
+        const world = screenToWorld(e.clientX, e.clientY);
+        const hit = findShapeAt(world.x, world.y);
+        if (!hit) return;
+        if (!window._connectorQuickStart) { window._connectorQuickStart = hit.id; } else {
+          const fromId = window._connectorQuickStart; const toId = hit.id;
+          connectors.push({ id: uuid(), from: { shapeId: fromId, anchor: 'center' }, to: { shapeId: toId, anchor: 'center' } });
+          window._connectorQuickStart = null; snapshot(); render();
+        }
+      });
+
+      // helper to ensure connectors stored with consistent anchor format (normalize)
+      function normalizeConnectors() {
+        // nothing for now; reserved
+      }
+
+      // small improvements: click on canvas with Escape to clear selection
+      window.addEventListener('keydown', e => { if (e.key === 'Escape') { selected = []; render(); hideContextMenu(); } });
+
+      // make selection via mouse drag (marquee) could be added later
+
+      // prevent accidental drag image ghost
+      window.addEventListener('dragstart', e => { e.dataTransfer.setDragImage(document.createElement('img'), 0, 0); }, true);
+
+      // Right now connectors referencing shapeId:null may exist (floating) — that's okay until user attaches or they get removed on drop.
+
+    })();
+  </script>
+
+  <script>
+    // Ensure favicon link uses encoded SVG to avoid caching issues
+    (function(){
+      const svg = "%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%2360a5fa'/%3E%3Cline x1='35' y1='55' x2='65' y2='45' stroke='%23ffffff' stroke-width='6' stroke-linecap='round'/%3E%3Ccircle cx='35' cy='55' r='7' fill='%23ffffff'/%3E%3Ccircle cx='65' cy='45' r='7' fill='%23ffffff'/%3E%3C/svg%3E";
+      const href = 'data:image/svg+xml;utf8,' + svg;
+      let link = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      // set href with a query to bust cache
+      link.href = href + '?v=' + Math.floor(Date.now()/1000);
+    })();
+  </script>
+</body>
+
+</html>
