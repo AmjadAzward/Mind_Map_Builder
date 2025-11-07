@@ -3,7 +3,7 @@
 
 An advanced web-based concept map builder designed for creating, connecting, and customizing shapes with an intuitive drag-and-drop interface. Includes features like grouping, resizing, connectors, undo/redo, and saving/loading maps.
 
-<img width="1919" height="861" alt="image" src="https://github.com/user-attachments/assets/09e03cd7-2a67-46eb-b097-e0fa35642d7e" />
+<img width="1901" height="915" alt="Screenshot 2025-11-08 003406" src="https://github.com/user-attachments/assets/cd7a51ef-6491-49e4-8ced-44835ca63ba2" />
 
 ---
 
